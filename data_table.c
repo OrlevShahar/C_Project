@@ -166,4 +166,3 @@ void label_file_create(char *file_name, label_list *label_head){
     }
     fclose(file_label);
 }
-
