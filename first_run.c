@@ -303,4 +303,3 @@ boolean is_legal_word(char *word, line_structur *line_s, table_list* table_head)
 }
 
 
-
