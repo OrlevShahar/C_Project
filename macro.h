@@ -31,4 +31,3 @@ void free_macro(macro_list* head);
 
 /*Function that check if the name of the macro is legal*/
 boolean check_macro_name(macro_list* head,char *word);
-
