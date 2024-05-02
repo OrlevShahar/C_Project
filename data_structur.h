@@ -101,4 +101,3 @@ line_structur build_line_structur (char* line, table_list* table_head);
 /*Function that prints the warning for the line*/
 void print_warning_str(char *file_name, int line_counr, line_structur *line_s);
 
-
