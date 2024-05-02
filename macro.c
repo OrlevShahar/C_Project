@@ -6,15 +6,15 @@
 #include "macro.h"
 
 macro_list* get_macro(macro_list* mh, char* name){
-	macro_list *point = mh; // DS-REVIEW: not sure why it is called "point", more of "node" I would say.
-	if(point==NULL){
+	macro_list *node = mh;
+	if(node==NULL){
 		return NULL;
 	}
-	while (point!=NULL){
-		if(strcmp(name,point->name)==0){
-			return point;
+	while (node!=NULL){
+		if(strcmp(name,node->name)==0){
+			return node;
 		}
-		point = point->next_macro;
+		node = node->next_macro;
 	}
 	return NULL;
 }
@@ -83,7 +83,6 @@ boolean check_macro_name(macro_list* head,char *word){
 	if(word==NULL || get_macro(head , word) != NULL){
 		return false;
 	}
-	/*is_register(word)==false, is_comendline(word) == false, is_start_letter(word) = true than return true, strlen(word)<=MAX_MACRO_NAME_SIZE = true */ // DS-REVIEW: remove commented out code
 	return !(is_register(word) || is_comendline(word) || !is_start_letter(word) || !(strlen(word)<=MAX_MACRO_NAME_SIZE));
 }
 
@@ -115,4 +114,3 @@ void free_macro(macro_list* head){
 		current_macro = next_macro;		
 	}
 }
-
