@@ -23,11 +23,12 @@ void base_4_encode(int bin, char *encode);
 /*Function that gets 2 bit and return the encode char*/
 char bim_to_code(int tow_bit);
 
-int main (int argc, char *argv[]){ // DS-REVIEW: Missing space before curly brace
-    int i, IC, DC; // DS-REVIEW: Not clear what IC and DC are. Give them a meaningful name even if it's longer.
+int main (int argc, char *argv[]) {
+    int i, IC, DC;
     /*run through the files and compile them*/
     for (i = 1; i < argc; i++) {
-        int memory_image[MEMORY_SIZE + 2]  = {0}; // DS-REVIEW: it is not clear what the significance of 2 is. Maybe define a constant that explains it or add a comment.
+        /*the +2 will help detect overflow */
+        int memory_image[MEMORY_SIZE + 2]  = {0};
         table_list* table_head = NULL;
         label_list* extern_head = NULL;
         label_list* entry_head = NULL;
@@ -41,7 +42,7 @@ int main (int argc, char *argv[]){ // DS-REVIEW: Missing space before curly brac
             /*If no errors were found in the first run and the second run*/
             create_files(argv[i], table_head, &IC, &DC, memory_image, extern_head, entry_head);
             
-        } // DS-REVIEW: Missing `else` statement for error handling. In this case you should print a failure message and return a non-zero exit code.
+        }
         /*free all link lists*/
         free_table_list(table_head);
         free_label_list(extern_head);
@@ -51,7 +52,7 @@ int main (int argc, char *argv[]){ // DS-REVIEW: Missing space before curly brac
     return 0;
 }
 
-void create_files(char *file_name, table_list* table_head, int* IC, int* DC, int *memory_image, label_list *extern_head, label_list *entry_head){
+void create_files(char *file_name, table_list* table_head, int* IC, int* DC, int *memory_image, label_list *extern_head, label_list *entry_head) {
     char *file_ob_name = add_file_ending(file_name, ".ob");
     char *file_ent_name = add_file_ending(file_name, ".ent");
     char *file_ext_name = add_file_ending(file_name, ".ext");
@@ -71,7 +72,7 @@ void create_files(char *file_name, table_list* table_head, int* IC, int* DC, int
     free(file_ext_name);
 }
 
-void ob_file_create(char *file_ob_name,  int IC, int DC, int *memory_image){
+void ob_file_create(char *file_ob_name,  int IC, int DC, int *memory_image) {
     FILE *file_ob = fopen(file_ob_name,"w");
     char encode[BASE_4_WORD_SIZE+1];
     int i;
@@ -83,7 +84,7 @@ void ob_file_create(char *file_ob_name,  int IC, int DC, int *memory_image){
     fclose(file_ob);
 }
 
-void base_4_encode(int bin, char *encode){
+void base_4_encode(int bin, char *encode) {
     int tow_bit;
     int i;
 
@@ -95,7 +96,7 @@ void base_4_encode(int bin, char *encode){
 
 }
 
-char bim_to_code(int tow_bit){
+char bim_to_code(int tow_bit) {
     switch (tow_bit)
     {
     case 0: 
@@ -115,4 +116,3 @@ char bim_to_code(int tow_bit){
     }
     return '\0';
 }
-
