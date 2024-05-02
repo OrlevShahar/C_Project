@@ -7,6 +7,18 @@
 #include "data_structur.h"
 
 
+typedef enum DirectiveType {
+    NO_DIRECTIVE = -1,
+    DATD_DIRECTIVE = 0,
+    STRING_DIRECTIVE, 
+    ENTRY_DIRECTIVE,
+    EXTERN_DIRECTIVE,
+    DEFINE
+}DirectiveType;
+
+/*Function that reaturn the directive type*/
+DirectiveType get_directive_type(char* word);
+
 /*Function that check the spelling of the label*/
 boolean check_word_spelling(char *word, int size);
 
@@ -81,7 +93,7 @@ line_structur build_line_structur (char* line, table_list* table_head){
     word = read_next_word(line, &point);
 
     /*check the size of the word*/
-    if(strlen(word)==MAX_LABEL_SIZE+1){ // DS-REVIEW: You can use `strlen(word, MAX_LABEL_SIZE)` to make sure your string is not longer than the maximum size. This will also avoid running over MAX_LABEL_SIZE characters.
+    if(strlen(word) > MAX_LABEL_SIZE){
         if(line[point] != '\0' && line[point] != ' ' && line[point] != '\t' && line[point] != '\n'){
             strcpy(line_s.warning_str,"Maximum buffer for label, directive is 31");
             free(word);
@@ -104,116 +116,80 @@ line_structur build_line_structur (char* line, table_list* table_head){
 
     /*directive line*/
     if (word[0] == '.'){
-        char *directive_option[] = {".data" , ".string", ".entry", ".extern", ".define", "NULL"};
-        /* DS-REVIEW: The code will recreate this array every time the function is called. You can make it a static constant to avoid this. e.g. `static const char *directive_option[] = { ... };`.
-         We can also avoid the `strcmp()` calls in the function by doing something like this:
-         ```
-         typedef enum DirectiveType {
-            NO_DIRECTIVE = -1,
-            DATA_DIRECTIVE = 0,
-            STRING_DIRECTIVE,
-            ENTRY_DIRECTIVE,
-            EXTERN_DIRECTIVE,
-            DEFINE_DIRECTIVE,
-            NULL_DIRECTIVE
-         };
-         DirectiveType get_directive_type(const char *word) { ... }
-         DirectiveType directive_type = get_directive_type(word);
-         switch (directive_type) {
-            case DATA_DIRECTIVE:
-                ...
-         }
-         ```
-          */
-        int i = 0;
-        int length = 0;
-
-        while (directive_option[i] != NULL)
+        DirectiveType directive = get_directive_type(word);
+        
+        switch (directive)
         {
-            length = (int)strlen(directive_option[i]);
+        /*define*/
+        case 4: /*define*/
+            line_s.line_type = define_line;
+            handele_define(line, &point, &line_s);
+            free(word);
+            return line_s;
+            break;
 
-            /*if the there aren't any white character after directive command*/
-            if (strncmp(word, directive_option[i], length) == 0 && length != strlen(word)){
-                strcpy(line_s.warning_str,"There should be a white character after ");
-                strcat(line_s.warning_str,directive_option[i]);
-                free(word);
-                return line_s;
-            }
+        /*data line*/
+        case 0:
+            line_s.line_type = directive_line;
+            line_s.line_data.directive.directive_type = directive;
+            data_hendel(line, &line_s, &point, table_head);
+            free(word);
+            return line_s;
+            break;
 
-            /*constant definition .define*/
-            if (strcmp(".define", word) == 0){
-                line_s.line_type = define_line;
-                handele_define(line, &point, &line_s);
-                free(word);
-                return line_s;
-            }
-
-            if (strcmp(directive_option[i], word) == 0 && strcmp(".define", directive_option[i]) != 0 ){
-
-                line_s.line_type = directive_line;
-                line_s.line_data.directive.directive_type = i;
-
-                switch (line_s.line_data.directive.directive_type)
-                {
-                /*data line*/
-                case data_directive:
-                    data_hendel(line, &line_s, &point, table_head);
-                    free(word);
-                    return line_s;
-                    break;
-                /*string line*/
-                case string_directive:
-                    read_string(line, &point, &line_s);
-                    free(word);
-                    return line_s;
-                    break;
+        /*string line*/
+        case 1:
+            line_s.line_type = directive_line;
+            line_s.line_data.directive.directive_type = directive;
+            read_string(line, &point, &line_s);
+            free(word);
+            return line_s;
+            break;
                 
-                /*entry and extern line*/
-                case entry_directive:
-                case extern_directive:
-                    free(word);
-                    word = read_next_word(line, &point);
+            /*entry and extern line*/
+        case 2:
+        case 3:
+            line_s.line_type = directive_line;
+            line_s.line_data.directive.directive_type = directive;
+            free(word);
+            word = read_next_word(line, &point);
                     
-                    /*check for missing label*/
-                    if (word[0]=='\0'){
-                        strcpy(line_s.warning_str,"mising label after: ");
-                        strcat(line_s.warning_str,directive_option[i]);
-                        free(word);
-                        return line_s;
-                    }
-                    /*Check if the label size exceeds 31 characters*/
-                    if(strlen(word) > MAX_LABEL_SIZE){
-                        strcpy(line_s.warning_str,"Maximum size of label is 31");
-                        free(word);
-                        return line_s;
-                    }
-                    /*check if there is garbage after label*/
-                    if(is_garbeg(line, &point) == true){
-                        strcpy(line_s.warning_str,"Unwanted characters after label declaration");
-                        free(word);
-                        return line_s;
-
-                    }
-                    /*check spelling and assign the label to the struct*/
-                    if(check_word_spelling(word, strlen(word))){
-                        strcpy(line_s.line_data.directive.directive_info.label, word);
-                    }else{
-                        strcpy(line_s.warning_str,word);
-                        strcat(line_s.warning_str," is not a legal label name can only start with a letter, and only letters and numbers are allowed");
-                    }
-                    
-                    free(word);
-                    return line_s;
-                    break;               
-                }
+            /*check for missing label*/
+            if (word[0]=='\0'){
+                strcpy(line_s.warning_str,"mising label after: entry/ label");
+                free(word);
+                return line_s;
             }
-            i++;
+            /*Check if the label size exceeds 31 characters*/
+            if(strlen(word) > MAX_LABEL_SIZE){
+                strcpy(line_s.warning_str,"Maximum size of label is 31");
+                free(word);
+                return line_s;
+            }
+            /*check if there is garbage after label*/
+            if(is_garbeg(line, &point) == true){
+                strcpy(line_s.warning_str,"Unwanted characters after label declaration");
+                free(word);
+                return line_s;
+            }
+            /*check spelling and assign the label to the struct*/
+            if(check_word_spelling(word, strlen(word))){
+                strcpy(line_s.line_data.directive.directive_info.label, word);
+            }else{
+                strcpy(line_s.warning_str,word);
+                strcat(line_s.warning_str," is not a legal label name can only start with a letter, and only letters and numbers are allowed");
+            }
+                
+            free(word);
+            return line_s;
+            break; 
+        case -1: 
+            strcpy(line_s.warning_str,"undefing name of directive: ");
+            strcat(line_s.warning_str,word);
+            free(word);
+            return line_s; 
+            break;     
         }
-
-        strcpy(line_s.warning_str,"undefing name of directive: ");
-        strcat(line_s.warning_str,word);
-        free(word);
-        return line_s;
     }
 
     
@@ -253,7 +229,27 @@ line_structur build_line_structur (char* line, table_list* table_head){
     return line_s;
 }
 
-boolean check_word_spelling(char *word, int size){ // DS-REVIEW: rename to `is_valid_label_name`.
+DirectiveType get_directive_type(char* word) {
+    
+    if (strcmp(".data", word) == 0) {
+        return DATD_DIRECTIVE;
+    }
+    if (strcmp(".string", word) == 0) {
+        return STRING_DIRECTIVE;
+    }
+    if (strcmp(".entry", word) == 0) {
+        return ENTRY_DIRECTIVE;
+    }
+    if (strcmp(".extern", word) == 0) {
+        return EXTERN_DIRECTIVE;
+    }
+     if (strcmp(".define", word) == 0) {
+        return DEFINE;
+    }
+    return NO_DIRECTIVE;
+}
+
+boolean check_word_spelling(char *word, int size) {
     int i;
    
     /*check if the word start in a characters*/
@@ -865,4 +861,3 @@ void check_operand(line_structur* line_s){
 void print_warning_str(char *file_name, int line_counr, line_structur *line_s){
 	printf("\nWARNING! file: %s line number: %d ,%s",file_name, line_counr, line_s->warning_str);
 }
-
