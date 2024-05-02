@@ -4,15 +4,15 @@
 #define EXTERN_LABEL 3
 
 /*table for labels and constant*/
-typedef struct table_list{ // DS-REVIEW: missing space
-    enum{ // DS-REVIEW: missing space
+typedef struct table_list{
+    enum{
         constant,
         code_label,     /*before command*/
         data_label,     /*before string and array*/
         extern_labal   /*can be used cannot be defined*/
-    }table_type; // DS-REVIEW: missing space
-	char *name; // DS-REVIEW: You can avoid using pointers and memory management by using a fixed size array. This will make your code simpler and less error-prone.
-    int value;
+    }table_type;
+	char *name;
+    int value;						
 	struct table_list *next_element; 	/*pointer for the next constant*/
 }table_list;
 
@@ -36,8 +36,8 @@ void free_table_list(table_list *table_head);
 
 /*table for extern and entry form this table the ext, ent files are created*/
 typedef struct label_list{
-    char *name; // DS-REVIEW: You can avoid using pointers and memory management by using a fixed size array. This will make your code simpler and less error-prone.
-    int addres; // DS-REVIEW: "addres" is misspelled. It should be "address". Also, the address is probably unsinged and has a specific number of bits. You can use uint16_t for example.
+    char *name;
+    int addres;
     struct label_list *next_label;
 }label_list;
 
@@ -52,5 +52,4 @@ void free_label_list(label_list *label_head);
 
 /*Function that create a file for the given file name and label_list*/
 void label_file_create(char *file_name, label_list *label_head);
-
 
